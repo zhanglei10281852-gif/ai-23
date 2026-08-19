@@ -32,7 +32,6 @@ func (s *CatalogService) BulkRegisterSnapshots(ctx context.Context, batches []do
 		return BulkSnapshotResult{}, domain.FieldError{Field: "batches", Message: "cannot contain more than 100 items"}
 	}
 	result := BulkSnapshotResult{Items: make([]BulkSnapshotItem, 0, len(batches))}
-	sharedSnapshot := &domain.DatasetSnapshot{}
 	for index, input := range batches {
 		if err := ctx.Err(); err != nil {
 			return result, err
@@ -44,8 +43,8 @@ func (s *CatalogService) BulkRegisterSnapshots(ctx context.Context, batches []do
 			continue
 		}
 		result.Succeeded++
-		created.CopyInto(sharedSnapshot)
-		result.Items = append(result.Items, BulkSnapshotItem{Index: index, Snapshot: sharedSnapshot, Code: "created"})
+		createdCopy := created.Clone()
+		result.Items = append(result.Items, BulkSnapshotItem{Index: index, Snapshot: &createdCopy, Code: "created"})
 	}
 	return result, nil
 }
